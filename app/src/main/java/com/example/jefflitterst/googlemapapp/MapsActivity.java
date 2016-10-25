@@ -30,10 +30,24 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import org.opencv.android.OpenCVLoader;
+
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, ActivityCompat.OnRequestPermissionsResultCallback, OnMapReadyCallback {
 
     private GoogleMap mMap;
     private boolean mPermissionDenied = false;
+
+    private static final String TAG = "MapsActivity";
+
+    static {
+        if(!OpenCVLoader.initDebug()) {
+            Log.d(TAG, "OpenCV not loaded");
+        }
+        else {
+            Log.d(TAG, "OpenCV loaded");
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
