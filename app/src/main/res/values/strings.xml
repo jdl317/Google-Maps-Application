@@ -1,4 +1,7 @@
 <resources>
-    <string name="app_name">GoogleMapApp</string>
+    <string name="app_name">ScavengerHuntApp</string>
     <string name="title_activity_maps">Map</string>
+    <string name="edit_message">Enter Distance!</string>
+    <string name="button_send">Start the Hunt!</string>
+    <string name="button_start">Welcome to our Scavenger Hunt! Click here to enter!</string>
 </resources>

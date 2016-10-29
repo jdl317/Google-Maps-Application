@@ -1,6 +1,7 @@
 package com.example.jefflitterst.googlemapapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Criteria;
@@ -16,6 +17,8 @@ import android.Manifest;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
+import android.widget.EditText;
+import android.view.View;
 
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -32,8 +35,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.opencv.android.OpenCVLoader;
 
-public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, ActivityCompat.OnRequestPermissionsResultCallback, OnMapReadyCallback {
 
+public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, ActivityCompat.OnRequestPermissionsResultCallback, OnMapReadyCallback {
+    public final static String EXTRA_MESSAGE = "com.example.jefflitterst.googlemapapp.MESSAGE";
     private GoogleMap mMap;
     private boolean mPermissionDenied = false;
 
@@ -46,6 +50,14 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         else {
             Log.d(TAG, "OpenCV loaded");
         }
+    }
+
+    public void sendMessage(View view) {
+        Intent intent = new Intent(this, DisplayMessageActivity.class);
+        //EditText editText = (EditText) findViewById(R.id.edit_message);
+        //String message = editText.getText().toString();
+        //intent.putExtra(EXTRA_MESSAGE, message);
+        startActivity(intent);
     }
 
 
