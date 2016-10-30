@@ -133,7 +133,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 .build();                   // Creates a CameraPosition from the builder
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
-        Polyline line1 = mMap.addPolyline(new PolylineOptions().add(taylorGym, zoellner).width(5).color(Color.RED));
+        //Polyline line1 = mMap.addPolyline(new PolylineOptions().add(taylorGym, zoellner).width(5).color(Color.RED));
         return;
     }
 
@@ -181,5 +181,19 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             // permissions this app might request
         }
 
+    }
+
+    public double getDistance(double lat1, double long1, double lat2, double long2) {
+        int radius = 3959; // Radius of the earth in miles
+        double dLat = degreeToRadian(lat2-lat1);
+        double dLon = degreeToRadian(long2-long1);
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(degreeToRadian(lat1)) * Math.cos(degreeToRadian(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double d = radius * c; // Distance in miles
+        return d;
+    }
+
+    public double degreeToRadian(double degrees) {
+        return degrees * (Math.PI/180);
     }
 }

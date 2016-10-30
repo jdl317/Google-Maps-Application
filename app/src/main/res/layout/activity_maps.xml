@@ -11,8 +11,9 @@
             android:layout_height="wrap_content"
             android:hint="@string/edit_message" /> -->
         <Button
-            android:layout_width="fill_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="150dp"
             android:text="@string/button_start"
             android:onClick="sendMessage" />
 </fragment>
