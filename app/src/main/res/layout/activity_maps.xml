@@ -1,3 +1,8 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_wrapper"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 <fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -5,15 +10,41 @@
     android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.jefflitterst.googlemapapp.MapsActivity" >
+    tools:context="com.example.jefflitterst.googlemapapp.MapsActivity"
+    tools:layout="@layout/cast_intro_overlay">
        <!-- <EditText android:id="@+id/edit_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:hint="@string/edit_message" /> -->
-        <Button
+      <!--  <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="150dp"
             android:text="@string/button_start"
-            android:onClick="sendMessage" />
-</fragment>
+            android:onClick="sendMessage" /> -->
+    <Button
+        android:id="@+id/buttonPrompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/dist" />
+    </fragment>
+
+    <TextView android:id="@+id/text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:textStyle="bold"
+        android:textSize="30sp"
+        android:text="@string/text" />
+
+<!--
+    <EditText
+        android:id="@+id/editTextResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+    </EditText> -->
+
+
+    </RelativeLayout>

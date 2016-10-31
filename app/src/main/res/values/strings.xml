@@ -4,4 +4,7 @@
     <string name="edit_message">Enter Distance!</string>
     <string name="button_send">Start the Hunt!</string>
     <string name="button_start">Welcome to our Scavenger Hunt! Click here to enter!</string>
+    <string name="dist">Set Distance</string>
+    <string name="howFar">How far would you like to travel today?</string>
+    <string name="text">distance: 0</string>
 </resources>

@@ -1,26 +1,37 @@
 package com.example.jefflitterst.googlemapapp;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.PermissionChecker;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.Manifest;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
+import android.widget.Button;
 import android.widget.Toast;
 import android.widget.EditText;
 import android.view.View;
+import android.widget.TextView;
+import android.app.Activity;
 
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -41,16 +52,22 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private GoogleMap mMap;
     private boolean mPermissionDenied = false;
 
+
     private static final String TAG = "MapsActivity";
 
     static {
-        if(!OpenCVLoader.initDebug()) {
+        if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "OpenCV not loaded");
-        }
-        else {
+        } else {
             Log.d(TAG, "OpenCV loaded");
         }
     }
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     public void sendMessage(View view) {
         Intent intent = new Intent(this, DisplayMessageActivity.class);
@@ -60,6 +77,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         startActivity(intent);
     }
 
+    final Context context = this;
+    private Button button;
+    private EditText result;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +89,63 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        button = (Button) findViewById(R.id.buttonPrompt);
+      //  result = (EditText) findViewById(R.id.editTextResult);
+        final String[] result = new String[1];
+
+        button.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View arg0) {
+
+                // get prompts.xml view
+                LayoutInflater li = LayoutInflater.from(context);
+                View promptsView = li.inflate(R.layout.map_layout, null);
+
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                        context);
+
+                // set prompts.xml to alertdialog builder
+                alertDialogBuilder.setView(promptsView);
+
+                final EditText userInput = (EditText) promptsView
+                        .findViewById(R.id.editTextDialogUserInput);
+
+                // set dialog message
+                alertDialogBuilder
+                        .setCancelable(false)
+                        .setPositiveButton("OK",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog,int id) {
+                                        // get user input and set it to result
+                                        // edit text
+                                        result[0] = String.valueOf(userInput.getText());
+                                    }
+                                })
+                        .setNegativeButton("Cancel",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog,int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+
+                // create alert dialog
+                AlertDialog alertDialog = alertDialogBuilder.create();
+
+                // show it
+                alertDialog.show();
+
+            }
+        });
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
     }
+
+
 
 
     /**
@@ -92,14 +168,28 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mMap.addMarker(new MarkerOptions().position(sydney).title("Hello"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        String provider = locationManager.getBestProvider(criteria, true);
+        try {
+            Location myLocation = locationManager.getLastKnownLocation(provider);
+            double latitude = myLocation.getLatitude();
+            double longitude = myLocation.getLongitude();
+            updateDistance(myLocation);
+            //LatLng latLng = new LatLng(latitude, longitude);
+            initializeLocations();
+        } catch (SecurityException se) {
+            Log.d("NO Permissions", "Involving getting last known provider");
+        }
+
     }
 
     private void enableMyLocation() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             // Permission to access the location is missing.
             ActivityCompat.requestPermissions(this,
-                    new String []{android.Manifest.permission.ACCESS_FINE_LOCATION}, PackageManager.GET_PERMISSIONS);
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PackageManager.GET_PERMISSIONS);
         } else if (mMap != null) {
             // Access to the location has been granted to the app.
             mMap.setMyLocationEnabled(true);
@@ -149,7 +239,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             //double longitude = myLocation.getLongitude();
             //LatLng latLng = new LatLng(latitude, longitude);
             initializeLocations();
-        }catch(SecurityException se){
+        } catch (SecurityException se) {
             Log.d("NO Permissions", "Involving getting last known provider");
         }
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
@@ -183,17 +273,65 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     }
 
+    public void updateDistance(Location startLocation)
+    {
+        GPSTracker mGPS = new GPSTracker(this);
+        if(mGPS.canGetLocation ){
+            Location current = mGPS.getLocation();
+            double dist = current.distanceTo(startLocation);
+            TextView t = (TextView)findViewById(R.id.text_view);
+            String setText = "distance: " + dist;
+            t.setText(setText);
+        }
+    }
+
     public double getDistance(double lat1, double long1, double lat2, double long2) {
         int radius = 3959; // Radius of the earth in miles
-        double dLat = degreeToRadian(lat2-lat1);
-        double dLon = degreeToRadian(long2-long1);
-        double a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(degreeToRadian(lat1)) * Math.cos(degreeToRadian(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double dLat = degreeToRadian(lat2 - lat1);
+        double dLon = degreeToRadian(long2 - long1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(degreeToRadian(lat1)) * Math.cos(degreeToRadian(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double d = radius * c; // Distance in miles
         return d;
     }
 
     public double degreeToRadian(double degrees) {
-        return degrees * (Math.PI/180);
+        return degrees * (Math.PI / 180);
+    }
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("Maps Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();
     }
 }
