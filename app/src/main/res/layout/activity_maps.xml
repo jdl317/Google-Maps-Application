@@ -27,6 +27,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/dist" />
+    <Button
+        android:id="@+id/button_camera"
+        android:text="@string/button_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="350dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true" />
     </fragment>
 
     <TextView android:id="@+id/text_view"

@@ -44,17 +44,17 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 
 
-public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, ActivityCompat.OnRequestPermissionsResultCallback, OnMapReadyCallback {
+public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, ActivityCompat.OnRequestPermissionsResultCallback, OnMapReadyCallback/*, CameraBridgeViewBase.CvCameraViewListener2*/ {
     public final static String EXTRA_MESSAGE = "com.example.jefflitterst.googlemapapp.MESSAGE";
     private GoogleMap mMap;
     private boolean mPermissionDenied = false;
 
 
     private static final String TAG = "MapsActivity";
-
     static {
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "OpenCV not loaded");
@@ -79,6 +79,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     final Context context = this;
     private Button button;
+    PictureTaker pictureTaker;
+    private Button pictures;
     private EditText result;
 
     @Override
@@ -93,6 +95,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         button = (Button) findViewById(R.id.buttonPrompt);
       //  result = (EditText) findViewById(R.id.editTextResult);
         final String[] result = new String[1];
+
+        pictures = (Button)findViewById(R.id.button_camera);
+        pictures.setOnClickListener(pictureListener);
 
         button.setOnClickListener(new View.OnClickListener() {
 
@@ -145,7 +150,11 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     }
 
-
+    private View.OnClickListener pictureListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            startActivity(new Intent(MapsActivity.this, PictureTaker.class));
+        }
+    };
 
 
     /**
@@ -198,6 +207,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     }
 
     private void initializeLocations() {
+
         LatLng taylorGym = new LatLng(40.607479, -75.374098);
         LatLng zoellner = new LatLng(40.608167, -75.372677);
         LatLng universitycenter = new LatLng(40.606141, -75.378222);
@@ -283,20 +293,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             String setText = "distance: " + dist;
             t.setText(setText);
         }
-    }
-
-    public double getDistance(double lat1, double long1, double lat2, double long2) {
-        int radius = 3959; // Radius of the earth in miles
-        double dLat = degreeToRadian(lat2 - lat1);
-        double dLon = degreeToRadian(long2 - long1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(degreeToRadian(lat1)) * Math.cos(degreeToRadian(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double d = radius * c; // Distance in miles
-        return d;
-    }
-
-    public double degreeToRadian(double degrees) {
-        return degrees * (Math.PI / 180);
     }
 
     /**
