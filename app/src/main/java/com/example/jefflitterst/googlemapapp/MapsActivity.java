@@ -9,6 +9,8 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -46,6 +48,8 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
+
+import java.io.File;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, ActivityCompat.OnRequestPermissionsResultCallback, OnMapReadyCallback/*, CameraBridgeViewBase.CvCameraViewListener2*/ {
@@ -149,7 +153,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
     }
-
     private View.OnClickListener pictureListener = new View.OnClickListener() {
         public void onClick(View v) {
             startActivity(new Intent(MapsActivity.this, PictureTaker.class));
@@ -181,12 +184,16 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         Criteria criteria = new Criteria();
         String provider = locationManager.getBestProvider(criteria, true);
         try {
+
             Location myLocation = locationManager.getLastKnownLocation(provider);
-            double latitude = myLocation.getLatitude();
-            double longitude = myLocation.getLongitude();
-            updateDistance(myLocation);
-            //LatLng latLng = new LatLng(latitude, longitude);
-            initializeLocations();
+            if(myLocation != null){
+                double latitude = myLocation.getLatitude();
+                double longitude = myLocation.getLongitude();
+                updateDistance(myLocation);
+                //LatLng latLng = new LatLng(latitude, longitude);
+                initializeLocations();
+            }
+
         } catch (SecurityException se) {
             Log.d("NO Permissions", "Involving getting last known provider");
         }

@@ -60,7 +60,8 @@ public class PictureTaker extends AppCompatActivity {
     };
 
     private void takePhoto(View v) {
-        Intent intent = new Intent("android.action.media.IMAGE_CAPTURE");
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        //Intent intent = new Intent("android.action.media.IMAGE_CAPTURE");
         File photo = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picture.jpg");
         imageUri = Uri.fromFile(photo);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
