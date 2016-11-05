@@ -27,14 +27,18 @@ import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import org.opencv.android.CameraBridgeViewBase;
+
 import java.io.File;
 
-public class PictureTaker extends AppCompatActivity {
+public class PictureTaker extends AppCompatActivity{
     private static final String TAG = "PicTaker: ";
     private static int TAKE_PIC = 1;
     private Uri imageUri;
     CameraManager mCameraManager;
     CameraDevice mCameraDevice;
+    private Button analysis;
+
 
 
     /*
@@ -84,12 +88,20 @@ public class PictureTaker extends AppCompatActivity {
                 bitmap = MediaStore.Images.Media.getBitmap(cr, selectedImage);
                 imageView.setImageBitmap(bitmap);
                 Toast.makeText(PictureTaker.this, selectedImage.toString(), Toast.LENGTH_LONG).show();
+                analysis = (Button)findViewById(R.id.button_analyze);
+                analysis.setOnClickListener(analysisListener);
             } catch(Exception e) {
                 Log.e(TAG, e.toString());
             }
 
         }
     }
+
+    private View.OnClickListener analysisListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            startActivity(new Intent(PictureTaker.this, ObjectRecognition.class));
+        }
+    };
     /*
     @TargetApi(21)
     private void openCamera() {
