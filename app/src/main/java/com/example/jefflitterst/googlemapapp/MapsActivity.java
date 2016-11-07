@@ -11,6 +11,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.multidex.MultiDex;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -97,7 +98,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mapFragment.getMapAsync(this);
 
         button = (Button) findViewById(R.id.buttonPrompt);
-      //  result = (EditText) findViewById(R.id.editTextResult);
+        //result = (EditText) findViewById(R.id.editTextResult);
         final String[] result = new String[1];
 
         pictures = (Button)findViewById(R.id.button_camera);
@@ -159,6 +160,11 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         }
     };
 
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
 
     /**
      * Manipulates the map once available.

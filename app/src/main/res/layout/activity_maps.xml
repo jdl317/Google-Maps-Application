@@ -27,21 +27,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/dist" />
+    </fragment>
+
     <Button
         android:id="@+id/button_camera"
         android:text="@string/button_camera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="350dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true" />
-    </fragment>
+        android:layout_alignParentBottom="true" />
 
     <TextView android:id="@+id/text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:textStyle="bold"
         android:textSize="30sp"
         android:text="@string/text" />
@@ -52,7 +51,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
-    </EditText> -->
-
+    </EditText>
+-->
 
     </RelativeLayout>

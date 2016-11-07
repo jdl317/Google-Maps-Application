@@ -88,8 +88,12 @@ public class PictureTaker extends AppCompatActivity{
                 bitmap = MediaStore.Images.Media.getBitmap(cr, selectedImage);
                 imageView.setImageBitmap(bitmap);
                 Toast.makeText(PictureTaker.this, selectedImage.toString(), Toast.LENGTH_LONG).show();
+
+                //Potentially not necessary
                 analysis = (Button)findViewById(R.id.button_analyze);
                 analysis.setOnClickListener(analysisListener);
+
+
             } catch(Exception e) {
                 Log.e(TAG, e.toString());
             }
@@ -97,6 +101,7 @@ public class PictureTaker extends AppCompatActivity{
         }
     }
 
+    //Potentially not necessary
     private View.OnClickListener analysisListener = new View.OnClickListener() {
         public void onClick(View v) {
             startActivity(new Intent(PictureTaker.this, ObjectRecognition.class));
