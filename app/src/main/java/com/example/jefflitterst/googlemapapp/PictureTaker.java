@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -28,6 +29,12 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.Utils;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.Scalar;
+import org.opencv.features2d.FeatureDetector;
+import org.opencv.features2d.Features2d;
 
 import java.io.File;
 
@@ -37,7 +44,8 @@ public class PictureTaker extends AppCompatActivity{
     private Uri imageUri;
     CameraManager mCameraManager;
     CameraDevice mCameraDevice;
-    private Button analysis;
+    private Button configure;
+    private Mat photoToDetect = new Mat();
 
 
 
@@ -55,6 +63,8 @@ public class PictureTaker extends AppCompatActivity{
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         Button cameraButton = (Button)findViewById(R.id.button_camera2);
         cameraButton.setOnClickListener(cameraListener);
+        configure = (Button)findViewById(R.id.button_configure);
+        configure.setOnClickListener(configListener);
     }
 
     public OnClickListener cameraListener = new OnClickListener() {
@@ -86,13 +96,28 @@ public class PictureTaker extends AppCompatActivity{
 
             try{
                 bitmap = MediaStore.Images.Media.getBitmap(cr, selectedImage);
-                imageView.setImageBitmap(bitmap);
-                Toast.makeText(PictureTaker.this, selectedImage.toString(), Toast.LENGTH_LONG).show();
 
-                //Potentially not necessary
-                analysis = (Button)findViewById(R.id.button_analyze);
-                analysis.setOnClickListener(analysisListener);
 
+                Mat photo = new Mat();
+
+                Utils.bitmapToMat(bitmap, photo);
+
+                int detectorType = FeatureDetector.SIFT;
+                FeatureDetector detector = FeatureDetector.create(detectorType);
+
+                if(!detector.empty()) {
+                    Mat mask = new Mat();
+                    MatOfKeyPoint keypoints = new MatOfKeyPoint();
+                    detector.detect(photo, keypoints, mask);
+                    Toast.makeText(PictureTaker.this, "Photo successfully uploaded", Toast.LENGTH_LONG).show();
+
+                    imageView.setImageBitmap(bitmap);
+
+                    Toast.makeText(PictureTaker.this, selectedImage.toString(), Toast.LENGTH_LONG).show();
+                }
+                else {
+                    Toast.makeText(PictureTaker.this, "ERROR", Toast.LENGTH_LONG).show();
+                }
 
             } catch(Exception e) {
                 Log.e(TAG, e.toString());
@@ -101,12 +126,34 @@ public class PictureTaker extends AppCompatActivity{
         }
     }
 
-    //Potentially not necessary
-    private View.OnClickListener analysisListener = new View.OnClickListener() {
+    private View.OnClickListener configListener = new View.OnClickListener() {
         public void onClick(View v) {
-            startActivity(new Intent(PictureTaker.this, ObjectRecognition.class));
+            //detectKeyPoints();
         }
     };
+
+    /*
+    private void detectKeyPoints() {
+        int detectorType = FeatureDetector.SIFT;
+        FeatureDetector detector = FeatureDetector.create(detectorType);
+
+        Mat mask = new Mat();
+        MatOfKeyPoint keypoints = new MatOfKeyPoint();
+        detector.detect(photoToDetect, keypoints, mask);
+        Toast.makeText(PictureTaker.this, "Photo successfully uploaded", Toast.LENGTH_LONG).show();
+
+        /*
+        if(!detector.empty()){
+            Mat output = new Mat();
+            Scalar color = new Scalar(0, 0, 255);
+            int flags = Features2d.DRAW_RICH_KEYPOINTS;
+            Features2d.drawKeypoints(photoToDetect, keypoints, output, color, flags);
+            Utils.matToBitmap(output, bitmap);
+        }
+
+        return;
+    }
+    */
     /*
     @TargetApi(21)
     private void openCamera() {

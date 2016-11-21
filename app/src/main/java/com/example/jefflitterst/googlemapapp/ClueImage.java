@@ -16,7 +16,7 @@ import java.util.List;
  * Created by jefflitterst on 11/6/16.
  */
 
-public class ObjectRec {
+public class ClueImage {
     private static final String TAG = "ObRec: ";
 
     private Mat frame;
@@ -38,12 +38,12 @@ public class ObjectRec {
     private int matchingPoints;
 
 
-    ObjectRec() {
+    ClueImage() {
         frameKeyPoints = new MatOfKeyPoint();
         frameDescriptors = new Mat();
         usedKeyPoints = new ArrayList<Point>();
 
-        detector = FeatureDetector.create(FeatureDetector.SIFT);
+        detector = FeatureDetector.create(FeatureDetector.SURF);
         extractor = DescriptorExtractor.create(FeatureDetector.SURF);
         matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE);
         matchingPoints = 0;

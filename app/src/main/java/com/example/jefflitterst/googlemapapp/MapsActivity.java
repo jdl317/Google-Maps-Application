@@ -252,7 +252,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     @Override
     public boolean onMyLocationButtonClick() {
-        Toast.makeText(this, "My Location button clicked", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Centering on Current Location", Toast.LENGTH_SHORT).show();
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
         String provider = locationManager.getBestProvider(criteria, true);
