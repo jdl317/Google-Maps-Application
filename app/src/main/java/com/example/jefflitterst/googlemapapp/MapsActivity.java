@@ -11,7 +11,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.multidex.MultiDex;
+//import android.support.multidex.MultiDex;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -50,7 +50,14 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, ActivityCompat.OnRequestPermissionsResultCallback, OnMapReadyCallback/*, CameraBridgeViewBase.CvCameraViewListener2*/ {
@@ -163,7 +170,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
-        MultiDex.install(this);
+        //MultiDex.install(this);
     }
 
     /**
@@ -246,9 +253,61 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 .build();                   // Creates a CameraPosition from the builder
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
-        //Polyline line1 = mMap.addPolyline(new PolylineOptions().add(taylorGym, zoellner).width(5).color(Color.RED));
-        return;
+        String places = doInBackground(placesSearchStr);
+        System.out.println(places);
+        //displayPlacePicker();   
+        // Polyline line1 = mMap.addPolyline(new PolylineOptions().add(taylorGym, zoellner).width(5).color(Color.RED)); 
     }
+
+    String API_KEY = "AIzaSyBPIAXXBgE5YCelxh30EfcsBzkxkQBtnBc";
+    double lat = 40.607479;
+    double lng = -75.374098;
+    String placesSearchStr = "https://maps.googleapis.com/maps/api/place/nearbysearch/" +
+            "json?location="+lat+","+lng+
+            "&radius=1000&sensor=true" +
+            "&types=hospital|health"+
+            "&key=" + API_KEY;
+
+    String uri = "https://maps.googleapis.com/maps/api/place/search/json?location=50.936364,5.873566&radius=500&name=ziekenhuis&sensor=false&key=AIzaSyBPIAXXBgE5YCelxh30EfcsBzkxkQBtnBc";
+    protected String doInBackground(String placesURL) {
+        //fetch places 
+        StringBuilder placesBuilder = new StringBuilder();
+        //for (String placeSearchURL : placesURL) {
+            try {
+
+                URL requestUrl = new URL(placesURL);
+                HttpURLConnection connection = (HttpURLConnection)requestUrl.openConnection();
+                connection.setRequestMethod("GET");
+                connection.connect();
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    BufferedReader reader = null;
+                    InputStream inputStream = connection.getInputStream();
+                    if (inputStream == null) {
+                        return "";
+                    }
+                    reader = new BufferedReader(new InputStreamReader(inputStream));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        placesBuilder.append(line + "\n");
+                    }
+                    if (placesBuilder.length() == 0) {
+                        return "";
+                    }
+                    Log.d("test", placesBuilder.toString());
+                }
+                else {
+                    Log.i("test", "Unsuccessful HTTP Response Code: " + responseCode);
+                }
+            } catch (MalformedURLException e) {
+                Log.e("test", "Error processing Places API URL", e);
+            } catch (IOException e) {
+                Log.e("test", "Error connecting to Places API", e);
+            }
+        //}
+        return placesBuilder.toString();
+    }
+
 
     @Override
     public boolean onMyLocationButtonClick() {
