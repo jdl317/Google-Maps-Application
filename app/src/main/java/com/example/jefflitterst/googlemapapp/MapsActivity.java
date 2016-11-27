@@ -253,9 +253,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 .build();                   // Creates a CameraPosition from the builder
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
-        String places = doInBackground(placesSearchStr);
-        System.out.println(places);
-        //displayPlacePicker();   
+        // Comment these out if necessary for now
+
+        //String places = doInBackground(placesSearchStr);
+        //System.out.println(places);
+
+        //displayPlacePicker();  
         // Polyline line1 = mMap.addPolyline(new PolylineOptions().add(taylorGym, zoellner).width(5).color(Color.RED)); 
     }
 
