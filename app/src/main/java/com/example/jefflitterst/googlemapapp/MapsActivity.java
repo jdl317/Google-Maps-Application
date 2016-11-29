@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
@@ -41,8 +43,10 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -58,13 +62,14 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, ActivityCompat.OnRequestPermissionsResultCallback, OnMapReadyCallback/*, CameraBridgeViewBase.CvCameraViewListener2*/ {
-    public final static String EXTRA_MESSAGE = "com.example.jefflitterst.googlemapapp.MESSAGE";
     private GoogleMap mMap;
     private boolean mPermissionDenied = false;
-
+    ArrayList<Place> places;
+    ArrayList<Bitmap> photos = new ArrayList<Bitmap>();
 
     private static final String TAG = "MapsActivity";
     static {
@@ -80,15 +85,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
-
-    public void sendMessage(View view) {
-        Intent intent = new Intent(this, DisplayMessageActivity.class);
-        //EditText editText = (EditText) findViewById(R.id.edit_message);
-        //String message = editText.getText().toString();
-        //intent.putExtra(EXTRA_MESSAGE, message);
-        startActivity(intent);
-    }
-
     final Context context = this;
     private Button button;
     PictureTaker pictureTaker;
@@ -97,15 +93,97 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SupportMapFragment mapFragment;
         super.onCreate(savedInstanceState);
+        startPage();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    }
+
+    public void startPage()
+    {
+        //brings up start page
+        setContentView(R.layout.start_screen);
+        final Button button2 = (Button) findViewById(R.id.button2);
+
+        //directions on click listener
+        button2.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                setContentView(R.layout.instructions);
+                final Button button4 = (Button) findViewById(R.id.button4);
+                button4.setOnClickListener(new View.OnClickListener() {
+                    //recursively goes back to start page
+                    public void onClick(View v)
+                    {
+                        startPage();
+                    }
+                });
+            }
+        });
+
+        //starting maps activity listener
+        final Button button3 = (Button) findViewById(R.id.button3);
+        button3.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startMap();
+            }
+        });
+    }
+
+    public void startMap()
+    {
+        //starts the map fragment
         setContentView(R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        SupportMapFragment mapFragment  = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+    }
+
+
+    private View.OnClickListener pictureListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            startActivity(new Intent(MapsActivity.this, PictureTaker.class));
+        }
+    };
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        //MultiDex.install(this);
+    }
+
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * we just add a marker near Sydney, Australia.
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.setOnMyLocationButtonClickListener(this);
+        enableMyLocation();
+
+        try {
+            // Set map fragment design scheme
+            boolean success = mMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.style_json));
+
+            if (!success) {
+                Log.e("MapsActivityRaw", "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e("MapsActivityRaw", "Can't find style.", e);
+        }
+
         button = (Button) findViewById(R.id.buttonPrompt);
-        //result = (EditText) findViewById(R.id.editTextResult);
         final String[] result = new String[1];
 
         pictures = (Button)findViewById(R.id.button_camera);
@@ -156,43 +234,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             }
         });
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-
-    }
-    private View.OnClickListener pictureListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            startActivity(new Intent(MapsActivity.this, PictureTaker.class));
-        }
-    };
-
-    @Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
-        //MultiDex.install(this);
-    }
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        mMap.setOnMyLocationButtonClickListener(this);
-        enableMyLocation();
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Hello"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
         String provider = locationManager.getBestProvider(criteria, true);
@@ -200,11 +241,13 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
             Location myLocation = locationManager.getLastKnownLocation(provider);
             if(myLocation != null){
-                double latitude = myLocation.getLatitude();
-                double longitude = myLocation.getLongitude();
-                updateDistance(myLocation);
-                //LatLng latLng = new LatLng(latitude, longitude);
-                initializeLocations();
+                final double latitude = myLocation.getLatitude();
+                final double longitude = myLocation.getLongitude();
+
+                //create a background thread to find nearby locations
+                Background bg = new Background(latitude, longitude, "hospital|museum|library|book_store|art_gallery|bakery|casino|fire_station|gym|movie_theater|police|school|stadium|university|zoo", this);
+                //execute thread
+                bg.execute();
             }
 
         } catch (SecurityException se) {
@@ -212,6 +255,44 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         }
 
     }
+
+    public void function (ArrayList<Place> placeList)
+    {
+        System.out.println("DONE");
+        //set result of background thread
+        places = placeList;
+        addMarkers();
+    }
+
+    public void addMarkers()
+    {
+        int k = 0;
+        for (int i = 0; i < places.size() && k < 10; i++) {
+
+            ArrayList<Photo> photoref = places.get(i).getPhotos();
+            if(!photoref.isEmpty()) {
+                mMap.addMarker(new MarkerOptions()
+                        .title(places.get(i).getName())
+                        .position(new LatLng(places.get(i).getLatitude(), places.get(i).getLongitude()))
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_action_name)));
+                for(int j = 0; j < 1; j++)
+                {
+                    ImageBackground bg = new ImageBackground(photoref.get(j).getReference(), photoref.get(j).getHeight(), photoref.get(j).getWidth(), this);
+                    bg.execute();
+                }
+                LatLng current = new LatLng(places.get(i).getLatitude(), places.get(i).getLongitude());
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(current, 15));
+                k++;
+            }
+
+        }
+    }
+
+    public void getMap(Bitmap map)
+    {
+        photos.add(map);
+    }
+
 
     private void enableMyLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -226,93 +307,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         }
     }
 
-    private void initializeLocations() {
 
-        LatLng taylorGym = new LatLng(40.607479, -75.374098);
-        LatLng zoellner = new LatLng(40.608167, -75.372677);
-        LatLng universitycenter = new LatLng(40.606141, -75.378222);
-        LatLng campussquare = new LatLng(40.609525, -75.378423);
-
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(taylorGym));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng(taylorGym));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
-        //mMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude)).title("You are here!").snippet("Consider yourself located"));
-        mMap.addMarker(new MarkerOptions().position(taylorGym).title("Welcome to Taylor Gym!").snippet("Skies out Thighs out!"));
-        mMap.addMarker(new MarkerOptions().position(zoellner).title("Here's Zoellner!").snippet("So Artistic!"));
-        mMap.addMarker(new MarkerOptions().position(universitycenter).title("The UC!").snippet("Coooool!"));
-        mMap.addMarker(new MarkerOptions().position(campussquare).title("Campus Square!").snippet("Yippee!"));
-        LatLng myCoordinates = taylorGym;//new LatLng(latitude, longitude);
-        CameraUpdate yourLocation = CameraUpdateFactory.newLatLngZoom(myCoordinates, 20);
-        mMap.animateCamera(yourLocation);
-
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(myCoordinates)      // Sets the center of the map to LatLng (refer to previous snippet)
-                .zoom(17)                   // Sets the zoom
-                .bearing(90)                // Sets the orientation of the camera to east
-                .tilt(30)                   // Sets the tilt of the camera to 30 degrees
-                .build();                   // Creates a CameraPosition from the builder
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
-        // Comment these out if necessary for now
-
-        //String places = doInBackground(placesSearchStr);
-        //System.out.println(places);
-
-        //displayPlacePicker();  
-        // Polyline line1 = mMap.addPolyline(new PolylineOptions().add(taylorGym, zoellner).width(5).color(Color.RED)); 
-    }
-
-    String API_KEY = "AIzaSyBPIAXXBgE5YCelxh30EfcsBzkxkQBtnBc";
-    double lat = 40.607479;
-    double lng = -75.374098;
-    String placesSearchStr = "https://maps.googleapis.com/maps/api/place/nearbysearch/" +
-            "json?location="+lat+","+lng+
-            "&radius=1000&sensor=true" +
-            "&types=hospital|health"+
-            "&key=" + API_KEY;
-
-    String uri = "https://maps.googleapis.com/maps/api/place/search/json?location=50.936364,5.873566&radius=500&name=ziekenhuis&sensor=false&key=AIzaSyBPIAXXBgE5YCelxh30EfcsBzkxkQBtnBc";
-    protected String doInBackground(String placesURL) {
-        //fetch places 
-        StringBuilder placesBuilder = new StringBuilder();
-        //for (String placeSearchURL : placesURL) {
-            try {
-
-                URL requestUrl = new URL(placesURL);
-                HttpURLConnection connection = (HttpURLConnection)requestUrl.openConnection();
-                connection.setRequestMethod("GET");
-                connection.connect();
-                int responseCode = connection.getResponseCode();
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    BufferedReader reader = null;
-                    InputStream inputStream = connection.getInputStream();
-                    if (inputStream == null) {
-                        return "";
-                    }
-                    reader = new BufferedReader(new InputStreamReader(inputStream));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        placesBuilder.append(line + "\n");
-                    }
-                    if (placesBuilder.length() == 0) {
-                        return "";
-                    }
-                    Log.d("test", placesBuilder.toString());
-                }
-                else {
-                    Log.i("test", "Unsuccessful HTTP Response Code: " + responseCode);
-                }
-            } catch (MalformedURLException e) {
-                Log.e("test", "Error processing Places API URL", e);
-            } catch (IOException e) {
-                Log.e("test", "Error connecting to Places API", e);
-            }
-        //}
-        return placesBuilder.toString();
-    }
-
-
-    @Override
     public boolean onMyLocationButtonClick() {
         Toast.makeText(this, "Centering on Current Location", Toast.LENGTH_SHORT).show();
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -320,10 +315,10 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         String provider = locationManager.getBestProvider(criteria, true);
         try {
             Location myLocation = locationManager.getLastKnownLocation(provider);
-            //double latitude = myLocation.getLatitude();
-            //double longitude = myLocation.getLongitude();
-            //LatLng latLng = new LatLng(latitude, longitude);
-            initializeLocations();
+            double latitude = myLocation.getLatitude();
+            double longitude = myLocation.getLongitude();
+            LatLng latLng = new LatLng(latitude, longitude);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
         } catch (SecurityException se) {
             Log.d("NO Permissions", "Involving getting last known provider");
         }

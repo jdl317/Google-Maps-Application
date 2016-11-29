@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:background="@drawable/background"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="84dp"
+        app:srcCompat="@drawable/instructions"
+        android:id="@+id/imageView"
+        android:layout_marginLeft="60dp" />
+
+    <TextView
+        android:text="Get out of your seat and come on a scavenger hunt with us! To play, just open the app. We will asses your current location and find cool palces all around you. Your job is to use our clues to find our interesting locations. At each location you will have an object you need to find and take a picture of. If we confirm that you found what we wanted you to look for, you can move onto the next clue. Have fun!"
+        android:layout_width="348dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView3"
+        android:textSize="18sp"
+        android:layout_weight="0.18"
+        android:layout_marginLeft="10dp" />
+
+    <Button
+        android:text="Back"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/button4" />
+</LinearLayout>
