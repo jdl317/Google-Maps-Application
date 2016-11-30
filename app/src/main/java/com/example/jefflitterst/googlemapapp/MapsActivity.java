@@ -228,7 +228,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
                     ImageView iv = (ImageView) v.findViewById(R.id.imageView1);
                     if (photos != null) {
-                        if (photos.size() == howmanyplaces) {
+                        if (photos.size() == markers.size()) {
                             for (int i = 0; i < markers.size(); i++) {
                                 if (marker.getPosition().equals(markers.get(i).getPosition())) {
                                     iv.setImageBitmap(photos.get(i));
@@ -355,7 +355,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                     clue = "You come here to look art";
                     break;
                 }
-                else if(place.getTypes()[l].equals("museum"))
+                else if(place.getTypes()[l].equals("bakery"))
                 {
                     clue = "You come here to snack on sweets, yum!";
                     break;
