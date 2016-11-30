@@ -3,29 +3,36 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:background="@drawable/background"
     android:layout_height="match_parent"
     android:weightSum="1">
 
-    <ImageView
+    <TextView
+        android:text="Instructions"
         android:layout_width="match_parent"
-        android:layout_height="84dp"
-        app:srcCompat="@drawable/instructions"
-        android:id="@+id/imageView"
-        android:layout_marginLeft="60dp" />
+        android:layout_height="0dp"
+        android:id="@+id/textView2"
+        android:textColor="@android:color/holo_green_dark"
+        android:textSize="30sp"
+        android:textAlignment="center"
+        android:gravity="bottom"
+        android:layout_weight="0.18" />
 
     <TextView
         android:text="Get out of your seat and come on a scavenger hunt with us! To play, just open the app. We will asses your current location and find cool palces all around you. Your job is to use our clues to find our interesting locations. At each location you will have an object you need to find and take a picture of. If we confirm that you found what we wanted you to look for, you can move onto the next clue. Have fun!"
-        android:layout_width="348dp"
+        android:layout_width="361dp"
         android:layout_height="wrap_content"
         android:id="@+id/textView3"
+        android:layout_marginLeft="0dp"
+        android:gravity="center_vertical"
+        android:textColor="?attr/colorPrimaryDark"
+        android:textAlignment="center"
         android:textSize="18sp"
-        android:layout_weight="0.18"
-        android:layout_marginLeft="10dp" />
+        android:layout_weight="0.09" />
 
     <Button
         android:text="Back"
-        android:layout_width="match_parent"
+        android:layout_width="276dp"
         android:layout_height="wrap_content"
-        android:id="@+id/button4" />
+        android:id="@+id/button4"
+        android:layout_marginLeft="50dp" />
 </LinearLayout>

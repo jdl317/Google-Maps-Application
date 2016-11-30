@@ -1,6 +1,6 @@
 <resources>
 
-        <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
             <!-- Customize your theme here. -->
             <item name="colorPrimary">@color/colorPrimary</item>
             <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -12,8 +12,7 @@
             <item name="colorPrimary">@android:color/white</item>
             <item name="colorPrimaryDark">@color/common_google_signin_btn_text_light</item>
             <item name="colorAccent">@android:color/holo_green_light</item>
-            <item name="android:textColorPrimary">@color/cast_expanded_controller_background_color
-            </item>
+            <item name="android:textColorPrimary">@android:color/secondary_text_light</item>
             <item name="android:statusBarColor">@color/cast_intro_overlay_background_color</item>
         </style>
 

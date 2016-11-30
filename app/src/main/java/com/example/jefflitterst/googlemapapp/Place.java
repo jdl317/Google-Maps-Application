@@ -24,11 +24,20 @@ public class Place {
     private Double rating;
     private String reference;
     private ArrayList<Photo> photos;
+    private String[] types;
 
 
     public ArrayList<Photo> getPhotos() {return photos;}
 
     public void setReference(ArrayList<Photo> photos) {this.photos = photos;}
+
+    public String [] getTypes() {
+        return types;
+    }
+
+    public void setTypes(String [] types) {
+        this.types = types;
+    }
 
     public String getId() {
         return id;
@@ -101,6 +110,13 @@ public class Place {
             result.setIcon(pontoReferencia.getString("icon"));
             result.setName(pontoReferencia.getString("name"));
             result.setVicinity(pontoReferencia.getString("vicinity"));
+            JSONArray arrJson = pontoReferencia.getJSONArray("types");
+            String[] types = new String[arrJson.length()];
+            for (int i = 0; i < arrJson.length(); i++)
+            {
+                types[i] = arrJson.getString(i);
+            }
+            result.setTypes(types);
             result.setId(pontoReferencia.getString("id"));
             JSONArray jsonPhotos = pontoReferencia.optJSONArray("photos");
             ArrayList<Photo> photos = new ArrayList<>();

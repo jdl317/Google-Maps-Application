@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+
+    <TextView
+        android:text="Good Work!"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView4"
+        android:textAlignment="center"
+        android:textStyle="normal|bold"
+        android:textSize="30sp"
+        android:textColor="@android:color/holo_green_dark"
+        android:layout_weight="0.21"
+        android:gravity="bottom" />
+
+    <TextView
+        android:text="Distance Traveled: "
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView5"
+        android:textSize="30sp"
+        android:layout_marginLeft="10dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dist."
+        android:ems="10"
+        android:id="@+id/distance"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        android:textColor="@android:color/black"
+        android:textStyle="normal|bold" />
+
+    <TextView
+        android:text="Calories Burned: "
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView6"
+        android:textSize="30sp"
+        android:layout_marginLeft="10dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cals."
+        android:ems="10"
+        android:id="@+id/calories"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        android:textStyle="normal|bold"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:text="Back"
+        android:layout_width="266dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/button6"
+        android:layout_marginLeft="50dp" />
+</LinearLayout>
