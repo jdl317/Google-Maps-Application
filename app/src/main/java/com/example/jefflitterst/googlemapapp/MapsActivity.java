@@ -76,8 +76,8 @@ import java.util.ArrayList;
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, ActivityCompat.OnRequestPermissionsResultCallback, OnMapReadyCallback/*, CameraBridgeViewBase.CvCameraViewListener2*/ {
     private GoogleMap mMap;
     private boolean mPermissionDenied = false;
-    ArrayList<Place> places;
-    ArrayList<Bitmap> photos = new ArrayList<Bitmap>();
+    ArrayList<Place> places = new ArrayList<Place>();
+    static ArrayList<Bitmap> photos = new ArrayList<Bitmap>();
     int howmanyplaces = 10;
     ArrayList<MarkerOptions> markers = new ArrayList<MarkerOptions>();
 
@@ -286,6 +286,10 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         //set result of background thread
         places = placeList;
         addMarkers();
+    }
+
+    public static ArrayList<Bitmap> getPhotos(){
+        return photos;
     }
 
     public void addMarkers()

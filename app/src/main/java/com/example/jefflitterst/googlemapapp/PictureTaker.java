@@ -22,8 +22,12 @@ import android.widget.Toast;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.features2d.DMatch;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
@@ -32,6 +36,8 @@ import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class PictureTaker extends AppCompatActivity{
     private static final String TAG = "PicTaker: ";
@@ -39,11 +45,14 @@ public class PictureTaker extends AppCompatActivity{
     private Uri imageUri;
     CameraManager mCameraManager;
     CameraDevice mCameraDevice;
-    private Button configure;
+    //private Button configure;
     private Mat photoToDetect;// = new Mat();
 
     private ArrayList<Mat> imageList = new ArrayList<Mat>();
+    private ArrayList<Mat> descList = new ArrayList<Mat>();
     private ArrayList<MatOfKeyPoint> kpList = new ArrayList<MatOfKeyPoint>();
+    private ArrayList<Bitmap> photoList = new ArrayList<Bitmap>();
+    private ArrayList<Integer> sortedLengths = new ArrayList<Integer>();
     private int count = 0;
 
 
@@ -67,12 +76,15 @@ public class PictureTaker extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_picture_taker);
 
+        photoList = MapsActivity.getPhotos();
+        detectKeyPoints();
+
         photoToDetect = new Mat();
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         Button cameraButton = (Button)findViewById(R.id.button_camera2);
         cameraButton.setOnClickListener(cameraListener);
-        configure = (Button)findViewById(R.id.button_configure);
-        configure.setOnClickListener(configListener);
+//        configure = (Button)findViewById(R.id.button_configure);
+//        configure.setOnClickListener(configListener);
     }
 
     public OnClickListener cameraListener = new OnClickListener() {
@@ -127,17 +139,28 @@ public class PictureTaker extends AppCompatActivity{
 //                Imgproc.cvtColor(img1, photo, Imgproc.COLOR_GRAY2RGB);
 
                 Mat featuredImg = new Mat();
-                Scalar kpColor = new Scalar(0,255,0);//this will be color of keypoints
+                Scalar red = new Scalar(255,0,0);
+                Scalar green = new Scalar(0,255,0);//this will be color of keypoints
                 //featuredImg will be the output of first image
-                Features2d.drawKeypoints(img1, keypoints1, featuredImg , kpColor, 0);
+                Features2d.drawKeypoints(img1, keypoints1, featuredImg , green, 0);
 
-                imageList.add(count, img1);
-                kpList.add(count, keypoints1);
-                count++;
+//                imageList.add(count, img1);
+//                kpList.add(count, keypoints1);
+//                descList.add(count, descriptors1);
+//                count++;
+
+                boolean matchmaker = false;
+                matchmaker = comparePhotos(img1, keypoints1, descriptors1);
 
                 Utils.matToBitmap(featuredImg, bitmap);
                 imageView.setImageBitmap(bitmap);
-                Toast.makeText(PictureTaker.this, "Key points successfully uploaded!", Toast.LENGTH_LONG).show();
+                if(matchmaker) {
+                    Toast.makeText(PictureTaker.this, "You made a match!", Toast.LENGTH_LONG).show();
+                }
+                else{
+                    Toast.makeText(PictureTaker.this, "No match :(", Toast.LENGTH_LONG).show();
+                }
+//                }
                 //Toast.makeText(PictureTaker.this, selectedImage.toString(), Toast.LENGTH_LONG).show();
 
             } catch(Exception e) {
@@ -147,31 +170,71 @@ public class PictureTaker extends AppCompatActivity{
         }
     }
 
-    private View.OnClickListener configListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            //detectKeyPoints();
-        }
-    };
 
+    private boolean comparePhotos(Mat image, MatOfKeyPoint keypoints, Mat descriptors){
+        for(int j = 0; j < count; j++) {
+            ArrayList<Float> sortedLengths = new ArrayList<Float>();
+            Mat featuredImg = new Mat();
+            DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
+            MatOfDMatch matches = new MatOfDMatch();
+            matcher.match(descList.get(j), descriptors, matches);
+
+            List<DMatch> matcheslist = matches.toList();
+            for (int i = 0; i < 500; i++) {
+                sortedLengths.add(matcheslist.get(i).distance);
+            }
+
+            Collections.sort(sortedLengths);
+            int average = 0;
+            for (int i = 0; i < 100; i++) {
+                average += sortedLengths.get(i);
+            }
+            average = average / 100;
+
+            if(average < 30){
+                return true;
+            }
+
+            sortedLengths.clear();
+        }
+        return false;
+//        MatOfByte drawnMatches = new MatOfByte();
+//        Features2d.drawMatches(imageList.get(count-2), kpList.get(count-2), imageList.get(count-1), kpList.get(count-1),matches,
+//                            featuredImg, green, red,  drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);
+//        Utils.matToBitmap(featuredImg, bitmap);
+//        Toast.makeText(PictureTaker.this, "Here are the matches!", Toast.LENGTH_LONG).show();
+    }
 
     private void detectKeyPoints() {
-        int detectorType = FeatureDetector.SURF;
-        FeatureDetector detector = FeatureDetector.create(detectorType);
+        FeatureDetector detector = FeatureDetector.create(FeatureDetector.ORB);
+        DescriptorExtractor descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
 
-        Mat mask = new Mat();
-        MatOfKeyPoint keypoints = new MatOfKeyPoint();
-        detector.detect(photoToDetect, keypoints, mask);
-        Toast.makeText(PictureTaker.this, "Photo successfully uploaded", Toast.LENGTH_LONG).show();
 
-        /*
-        if(!detector.empty()){
-            Mat output = new Mat();
-            Scalar color = new Scalar(0, 0, 255);
-            int flags = Features2d.DRAW_RICH_KEYPOINTS;
-            Features2d.drawKeypoints(photoToDetect, keypoints, output, color, flags);
-            Utils.matToBitmap(output, bitmap);
+        for(int i = 0; i < photoList.size(); i++){
+            Mat pic = new Mat();
+            Utils.bitmapToMat(photoList.get(i), pic);
+            Mat image = new Mat();
+            Imgproc.cvtColor(pic, image, Imgproc.COLOR_RGB2GRAY);
+            Mat descriptors1 = new Mat();
+            MatOfKeyPoint keypoints1 = new MatOfKeyPoint();
+            detector.detect(image, keypoints1);
+            descriptor.compute(image, keypoints1, descriptors1);
+
+            //ClueImage pic1 = new ClueImage(img1, keypoints1);
+
+//                Imgproc.cvtColor(img1, photo, Imgproc.COLOR_GRAY2RGB);
+
+            //Mat featuredImg = new Mat();
+            //Scalar red = new Scalar(255,0,0);
+            //Scalar green = new Scalar(0,255,0);//this will be color of keypoints
+            //featuredImg will be the output of first image
+            //Features2d.drawKeypoints(image, keypoints1, featuredImg , green, 0);
+
+            imageList.add(count, image);
+            kpList.add(count, keypoints1);
+            descList.add(count, descriptors1);
+            count++;
         }
-        */
         return;
     }
 
