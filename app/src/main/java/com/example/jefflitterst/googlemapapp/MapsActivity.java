@@ -20,12 +20,19 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.AlertDialog;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.Manifest;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
+import android.view.Window;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.ImageView;
+import android.widget.RadioGroup;
+import android.widget.SeekBar;
 import android.widget.Toast;
 import android.widget.EditText;
 import android.view.View;
@@ -47,6 +54,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -70,6 +78,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private boolean mPermissionDenied = false;
     ArrayList<Place> places;
     ArrayList<Bitmap> photos = new ArrayList<Bitmap>();
+    int howmanyplaces = 10;
+    ArrayList<MarkerOptions> markers = new ArrayList<MarkerOptions>();
 
     private static final String TAG = "MapsActivity";
     static {
@@ -135,11 +145,23 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     public void startMap()
     {
         //starts the map fragment
+        setContentView(R.layout.how_many_places);
+        final Button button5 = (Button) findViewById(R.id.button5);
+        button5.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
+                EditText text = (EditText) findViewById(R.id.editText2);
+                howmanyplaces = Integer.parseInt(text.getText().toString());
+                afterHowMany();
+            }
+        });
+    }
+
+    public void afterHowMany()
+    {
         setContentView(R.layout.activity_maps);
         SupportMapFragment mapFragment  = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
     }
 
 
@@ -183,56 +205,58 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             Log.e("MapsActivityRaw", "Can't find style.", e);
         }
 
-        button = (Button) findViewById(R.id.buttonPrompt);
-        final String[] result = new String[1];
-
         pictures = (Button)findViewById(R.id.button_camera);
         pictures.setOnClickListener(pictureListener);
 
-        button.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onClick(View arg0) {
+        if (mMap != null) {
+            mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+                @Override
+                public View getInfoWindow(Marker marker) {
+                    return null;
+                }
 
-                // get prompts.xml view
-                LayoutInflater li = LayoutInflater.from(context);
-                View promptsView = li.inflate(R.layout.map_layout, null);
+                @Override
+                public View getInfoContents(Marker marker) {
+                    View v = getLayoutInflater().inflate(R.layout.info_window, null);
+                    TextView tvLocality = (TextView) v.findViewById(R.id.tvLocality);
+                    TextView tvSnippet = (TextView) v.findViewById(R.id.tvSnippet);
 
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                        context);
+                    LatLng latLng = marker.getPosition();
+                    tvLocality.setText(marker.getTitle());
+                    tvSnippet.setText(marker.getSnippet());
 
-                // set prompts.xml to alertdialog builder
-                alertDialogBuilder.setView(promptsView);
+                    ImageView iv = (ImageView) v.findViewById(R.id.imageView1);
+                    if (photos != null) {
+                        if (photos.size() == howmanyplaces) {
+                            for (int i = 0; i < markers.size(); i++) {
+                                if (marker.getPosition().equals(markers.get(i).getPosition())) {
+                                    iv.setImageBitmap(photos.get(i));
+                                }
+                            }
+                        }
+                    }
 
-                final EditText userInput = (EditText) promptsView
-                        .findViewById(R.id.editTextDialogUserInput);
+                    return v;
+                }
+            });
 
-                // set dialog message
-                alertDialogBuilder
-                        .setCancelable(false)
-                        .setPositiveButton("OK",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog,int id) {
-                                        // get user input and set it to result
-                                        // edit text
-                                        result[0] = String.valueOf(userInput.getText());
-                                    }
-                                })
-                        .setNegativeButton("Cancel",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog,int id) {
-                                        dialog.cancel();
-                                    }
-                                });
+            Button exercisebutton = (Button) (findViewById(R.id.button_distance));
+            exercisebutton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(final View v) {
+                    setContentView(R.layout.exercise_stats);
+                    Button back = (Button) (findViewById(R.id.button6));
+                    back.setOnClickListener(new View.OnClickListener() {
+                       public void onClick(View view)
+                       {
 
-                // create alert dialog
-                AlertDialog alertDialog = alertDialogBuilder.create();
+                       }
+                    });
+                }
+            });
 
-                // show it
-                alertDialog.show();
+        }
 
-            }
-        });
 
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
@@ -267,25 +291,118 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     public void addMarkers()
     {
         int k = 0;
-        for (int i = 0; i < places.size() && k < 10; i++) {
+        for (int i = 0; i < places.size() && k < howmanyplaces; i++) {
 
             ArrayList<Photo> photoref = places.get(i).getPhotos();
             if(!photoref.isEmpty()) {
-                mMap.addMarker(new MarkerOptions()
-                        .title(places.get(i).getName())
-                        .position(new LatLng(places.get(i).getLatitude(), places.get(i).getLongitude()))
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_action_name)));
                 for(int j = 0; j < 1; j++)
                 {
                     ImageBackground bg = new ImageBackground(photoref.get(j).getReference(), photoref.get(j).getHeight(), photoref.get(j).getWidth(), this);
                     bg.execute();
                 }
+
+                String clue = displayClue(places.get(i));
+                MarkerOptions marker = new MarkerOptions()
+                        .title("CLUE:")
+                        .snippet(clue)
+                        .position(new LatLng(places.get(i).getLatitude(), places.get(i).getLongitude()))
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_action_name));
+                mMap.addMarker(marker);
+                markers.add(marker);
+
+
                 LatLng current = new LatLng(places.get(i).getLatitude(), places.get(i).getLongitude());
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(current, 15));
                 k++;
             }
 
         }
+
+    }
+
+    public String displayClue(Place place)
+    {
+        String clue = "";
+        //hospital|museum|library|book_store|art_gallery|bakery|casino|fire_station|gym|movie_theater|police|school|stadium|university|zoo
+        for(int l = 0; l < place.getTypes().length; l++)
+        {
+                if(place.getTypes()[l].equals("hospital"))
+                {
+                    clue = "You go here to get healed when you are sick";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("museum"))
+                {
+                    clue = "You definetly thought these were kind of boring on school field trips";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("library"))
+                {
+                    clue = "You go here to check out books";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("book_store"))
+                {
+                    clue = "You go here to buy books (or maybe you used to before Kindle!)";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("art_gallery"))
+                {
+                    clue = "You come here to look art";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("museum"))
+                {
+                    clue = "You come here to snack on sweets, yum!";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("casino"))
+                {
+                    clue = "You come here to gamble your $$";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("fire_station"))
+                {
+                    clue = "Here's where they keep the fire trucks";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("gym"))
+                {
+                    clue = "You come here to sweat!";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("movie_theater"))
+                {
+                    clue = "You come here to watch movies before they are on Netflix";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("police"))
+                {
+                    clue = "This is who picks up when you call 911";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("school"))
+                {
+                    clue = "You come here to learn";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("stadium"))
+                {
+                    clue = "You come here to cheer on your team (better not be Lafayette)";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("university"))
+                {
+                    clue = "Tough classes, a lot of studying, and a lot of fun can be found here";
+                    break;
+                }
+                else if(place.getTypes()[l].equals("zoo"))
+                {
+                    clue = "This place has some pretty cool animals";
+                    break;
+                }
+            }
+        return clue;
     }
 
     public void getMap(Bitmap map)
@@ -353,6 +470,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     }
 
+    /*
     public void updateDistance(Location startLocation)
     {
         GPSTracker mGPS = new GPSTracker(this);
@@ -364,6 +482,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             t.setText(setText);
         }
     }
+    */
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -401,3 +520,4 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         client.disconnect();
     }
 }
+
