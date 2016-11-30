@@ -7,7 +7,7 @@
     <string name="dist">Set Distance</string>
     <string name="howFar">How far would you like to travel today?</string>
     <string name="text">distance: 0</string>
-    <string name="button_camera">Take a photo?</string>
+    <string name="button_camera">Take a photo</string>
     <string name="image_cd_camera">generic content description</string>
     <string name="button_takepic">take photo</string>
     <string name="button_configure">set clue</string>
