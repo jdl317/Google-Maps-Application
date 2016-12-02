@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 //import android.support.multidex.MultiDex;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -44,6 +45,7 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -61,6 +63,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Point;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -73,13 +76,18 @@ import java.net.URL;
 import java.util.ArrayList;
 
 
-public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, ActivityCompat.OnRequestPermissionsResultCallback, OnMapReadyCallback/*, CameraBridgeViewBase.CvCameraViewListener2*/ {
+public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, ActivityCompat.OnRequestPermissionsResultCallback, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks /*, CameraBridgeViewBase.CvCameraViewListener2*/ {
     private GoogleMap mMap;
     private boolean mPermissionDenied = false;
     ArrayList<Place> places = new ArrayList<Place>();
     static ArrayList<Bitmap> photos = new ArrayList<Bitmap>();
     int howmanyplaces = 10;
     ArrayList<MarkerOptions> markers = new ArrayList<MarkerOptions>();
+
+    LatLng lastKnownLocation;
+    static double totalDistance = 0.0;
+
+    LocationListener mListener;
 
     private static final String TAG = "MapsActivity";
     static {
@@ -192,6 +200,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mMap.setOnMyLocationButtonClickListener(this);
         enableMyLocation();
 
+
         try {
             // Set map fragment design scheme
             boolean success = mMap.setMapStyle(
@@ -244,14 +253,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             Button exercisebutton = (Button) (findViewById(R.id.button_distance));
             exercisebutton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(final View v) {
-                    setContentView(R.layout.exercise_stats);
-                    Button back = (Button) (findViewById(R.id.button6));
-                    back.setOnClickListener(new View.OnClickListener() {
-                       public void onClick(View view)
-                       {
+                    Intent intent = new Intent(MapsActivity.this, Pop.class);
 
-                       }
-                    });
+                    Bundle b = new Bundle();
+                    b.putDouble("key", totalDistance);
+                    intent.putExtras(b);
+                    startActivity(intent);
                 }
             });
 
@@ -310,7 +317,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                         .title("CLUE:")
                         .snippet(clue)
                         .position(new LatLng(places.get(i).getLatitude(), places.get(i).getLongitude()))
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_action_name));
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.new_marker));
                 mMap.addMarker(marker);
                 markers.add(marker);
 
@@ -440,8 +447,10 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             double longitude = myLocation.getLongitude();
             LatLng latLng = new LatLng(latitude, longitude);
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+            lastKnownLocation = latLng;
         } catch (SecurityException se) {
             Log.d("NO Permissions", "Involving getting last known provider");
+            lastKnownLocation = null;
         }
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
@@ -522,6 +531,38 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         AppIndex.AppIndexApi.end(client, getIndexApiAction());
         client.disconnect();
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        mListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                double latitude = location.getLatitude();
+                double longitude = location.getLongitude();
+                LatLng changedLocation = new LatLng(latitude, longitude);
+                distFrom(changedLocation.latitude, changedLocation.latitude, lastKnownLocation.latitude, lastKnownLocation.longitude);
+                lastKnownLocation = changedLocation;
+            }
+        };
+    }
+
+    public void distFrom(double lat1, double lng1, double lat2, double lng2) {
+        double earthRadius = 6371000; //meters
+        double dLat = Math.toRadians(lat2-lat1);
+        double dLng = Math.toRadians(lng2-lng1);
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(dLng/2) * Math.sin(dLng/2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        float dist = (float) (earthRadius * c);
+
+        totalDistance += dist;
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
     }
 }
 
