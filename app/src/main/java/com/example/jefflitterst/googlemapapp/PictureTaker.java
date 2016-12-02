@@ -155,10 +155,10 @@ public class PictureTaker extends AppCompatActivity{
                 Utils.matToBitmap(featuredImg, bitmap);
                 imageView.setImageBitmap(bitmap);
                 if(matchmaker) {
-                    Toast.makeText(PictureTaker.this, "You made a match!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(PictureTaker.this, "Congratulations!\nWe have a match!", Toast.LENGTH_LONG).show();
                 }
                 else{
-                    Toast.makeText(PictureTaker.this, "No match :(", Toast.LENGTH_LONG).show();
+                    Toast.makeText(PictureTaker.this, "No match :(\nPlease take another photo", Toast.LENGTH_LONG).show();
                 }
 //                }
                 //Toast.makeText(PictureTaker.this, selectedImage.toString(), Toast.LENGTH_LONG).show();
@@ -192,6 +192,17 @@ public class PictureTaker extends AppCompatActivity{
             average = average / 100;
 
             if(average < 30){
+                removePhotos(j);
+                //MapsActivity.removePhoto(j);
+                MapsActivity.removeMarker(j);
+                imageList.remove(j);
+                kpList.remove(j);
+                descList.remove(j);
+                count--;
+
+                if(photoList.isEmpty()){
+                    //Done with scavenger hunt!
+                }
                 return true;
             }
 
@@ -203,6 +214,11 @@ public class PictureTaker extends AppCompatActivity{
 //                            featuredImg, green, red,  drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);
 //        Utils.matToBitmap(featuredImg, bitmap);
 //        Toast.makeText(PictureTaker.this, "Here are the matches!", Toast.LENGTH_LONG).show();
+    }
+
+    public void removePhotos(int index){
+        photoList.remove(index);
+        return;
     }
 
     private void detectKeyPoints() {

@@ -79,10 +79,10 @@ import java.util.ArrayList;
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, ActivityCompat.OnRequestPermissionsResultCallback, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks /*, CameraBridgeViewBase.CvCameraViewListener2*/ {
     private GoogleMap mMap;
     private boolean mPermissionDenied = false;
-    ArrayList<Place> places = new ArrayList<Place>();
+    static ArrayList<Place> places = new ArrayList<Place>();
     static ArrayList<Bitmap> photos = new ArrayList<Bitmap>();
     int howmanyplaces = 10;
-    ArrayList<MarkerOptions> markers = new ArrayList<MarkerOptions>();
+    static ArrayList<MarkerOptions> markers = new ArrayList<MarkerOptions>();
 
     LatLng lastKnownLocation;
     static double totalDistance = 0.0;
@@ -297,6 +297,22 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     public static ArrayList<Bitmap> getPhotos(){
         return photos;
+    }
+
+    public static void removePhoto(int index){
+        photos.remove(index);
+        return;
+    }
+
+    public static void removeMarker(int index){
+        markers.get(index).visible(false);
+        markers.remove(index);
+        return;
+    }
+
+    public static void removePlace(int index){
+        places.remove(index);
+        return;
     }
 
     public void addMarkers()
