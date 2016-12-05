@@ -54,6 +54,7 @@ public class PictureTaker extends AppCompatActivity{
     private ArrayList<Bitmap> photoList = new ArrayList<Bitmap>();
     private ArrayList<Integer> sortedLengths = new ArrayList<Integer>();
     private int count = 0;
+    private int listItem = 0;
 
 
 
@@ -149,16 +150,21 @@ public class PictureTaker extends AppCompatActivity{
 //                descList.add(count, descriptors1);
 //                count++;
 
-                boolean matchmaker = false;
+                int matchmaker;
                 matchmaker = comparePhotos(img1, keypoints1, descriptors1);
 
                 Utils.matToBitmap(featuredImg, bitmap);
                 imageView.setImageBitmap(bitmap);
-                if(matchmaker) {
-                    Toast.makeText(PictureTaker.this, "Congratulations!\nWe have a match!", Toast.LENGTH_LONG).show();
+
+                if(matchmaker <= 75) {
+                    Intent data = new Intent();
+                    data.setData(Uri.parse(""+listItem));
+                    setResult(RESULT_OK, data);
+                    Toast.makeText(PictureTaker.this, " Congratulations!\n You found a match", Toast.LENGTH_LONG).show();
+                    finish();
                 }
                 else{
-                    Toast.makeText(PictureTaker.this, "No match :(\nPlease take another photo", Toast.LENGTH_LONG).show();
+                    Toast.makeText(PictureTaker.this, "No match :(\nPlease try again", Toast.LENGTH_LONG).show();
                 }
 //                }
                 //Toast.makeText(PictureTaker.this, selectedImage.toString(), Toast.LENGTH_LONG).show();
@@ -171,13 +177,14 @@ public class PictureTaker extends AppCompatActivity{
     }
 
 
-    private boolean comparePhotos(Mat image, MatOfKeyPoint keypoints, Mat descriptors){
-        for(int j = 0; j < count; j++) {
+    private int comparePhotos(Mat image, MatOfKeyPoint keypoints, Mat descriptors){
+        int minavg = 1000;
+        for(listItem = 0; listItem < count; listItem++) {
             ArrayList<Float> sortedLengths = new ArrayList<Float>();
             Mat featuredImg = new Mat();
             DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
             MatOfDMatch matches = new MatOfDMatch();
-            matcher.match(descList.get(j), descriptors, matches);
+            matcher.match(descList.get(listItem), descriptors, matches);
 
             List<DMatch> matcheslist = matches.toList();
             for (int i = 0; i < 500; i++) {
@@ -191,24 +198,33 @@ public class PictureTaker extends AppCompatActivity{
             }
             average = average / 100;
 
-            if(average < 30){
-                removePhotos(j);
-                //MapsActivity.removePhoto(j);
-                MapsActivity.removeMarker(j);
-                imageList.remove(j);
-                kpList.remove(j);
-                descList.remove(j);
+            if(average < minavg){
+                minavg = average;
+            }
+
+            if(minavg <= 75){
+                removePhotos(listItem);
+                //MapsActivity.removePhoto(listItem);
+                //MapsActivity.removeMarker(listItem);
+                imageList.remove(listItem);
+                kpList.remove(listItem);
+                descList.remove(listItem);
                 count--;
 
                 if(photoList.isEmpty()){
+                    Intent data = new Intent();
+                    data.setData(Uri.parse(""+100));
+                    setResult(RESULT_OK, data);
+                    finish();
                     //Done with scavenger hunt!
+                    //Toast.makeText(PictureTaker.this, "You've completed the scavenger hunt!!!", Toast.LENGTH_LONG).show();
                 }
-                return true;
+                return minavg;
             }
 
             sortedLengths.clear();
         }
-        return false;
+        return minavg;
 //        MatOfByte drawnMatches = new MatOfByte();
 //        Features2d.drawMatches(imageList.get(count-2), kpList.get(count-2), imageList.get(count-1), kpList.get(count-1),matches,
 //                            featuredImg, green, red,  drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);

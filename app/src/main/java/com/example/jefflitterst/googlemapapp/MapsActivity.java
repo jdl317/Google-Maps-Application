@@ -178,9 +178,34 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     private View.OnClickListener pictureListener = new View.OnClickListener() {
         public void onClick(View v) {
-            startActivity(new Intent(MapsActivity.this, PictureTaker.class));
+            startActivityForResult(new Intent(MapsActivity.this, PictureTaker.class), 1);
         }
     };
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(requestCode == 1){
+            int index = Integer.parseInt(data.getDataString());
+            if(index != 100) {
+                //removeMarker(index);
+                markers.clear();
+                photos.clear();
+                mMap.clear();
+                howmanyplaces--;
+                // removePlace(index);
+                addMarkers();
+                //removePhoto(index);
+                current_location = getMyLocation();
+                float distanceTraveled = current_location.distanceTo(previous_location);
+                previous_location = current_location;
+                totalDistance += distanceTraveled;
+            }
+            else{
+                setContentView(R.layout.endpage);
+            }
+
+        }
+    }
 
     @Override
     protected void attachBaseContext(Context base) {
