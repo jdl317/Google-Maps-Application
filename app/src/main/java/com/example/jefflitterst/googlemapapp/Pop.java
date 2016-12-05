@@ -8,6 +8,8 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.text.DecimalFormat;
+
 /**
  * Created by emmawald on 11/30/16.
  */
@@ -34,8 +36,11 @@ public class Pop extends Activity{
         TextView dist = (TextView) findViewById(R.id.dist);
         TextView cals = (TextView) findViewById(R.id.cals);
 
-        dist.setText(distanceMiles + "");
-        cals.setText(calories + "");
+        DecimalFormat df = new DecimalFormat();
+        df.setMaximumFractionDigits(2);
+
+        dist.setText(df.format(distanceMiles) + "");
+        cals.setText(df.format(calories) + "");
 
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);

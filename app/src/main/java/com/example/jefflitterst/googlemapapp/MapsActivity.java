@@ -87,6 +87,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     LatLng lastKnownLocation;
     static double totalDistance = 0.0;
 
+    static Location previous_location = null;
+    static Location current_location = null;
+
     LocationListener mListener;
 
     private static final String TAG = "MapsActivity";
@@ -253,12 +256,20 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             Button exercisebutton = (Button) (findViewById(R.id.button_distance));
             exercisebutton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(final View v) {
+
+                    current_location = getMyLocation();
+                    float distanceTraveled = current_location.distanceTo(previous_location);
+
                     Intent intent = new Intent(MapsActivity.this, Pop.class);
 
                     Bundle b = new Bundle();
-                    b.putDouble("key", totalDistance);
+                    b.putDouble("key", distanceTraveled);
                     intent.putExtras(b);
                     startActivity(intent);
+
+                    previous_location = current_location;
+                    totalDistance += distanceTraveled;
+
                 }
             });
 
@@ -274,6 +285,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             if(myLocation != null){
                 final double latitude = myLocation.getLatitude();
                 final double longitude = myLocation.getLongitude();
+                lastKnownLocation = new LatLng(latitude, longitude);
+                previous_location = myLocation;
 
                 //create a background thread to find nearby locations
                 Background bg = new Background(latitude, longitude, "hospital|museum|library|book_store|art_gallery|bakery|casino|fire_station|gym|movie_theater|police|school|stadium|university|zoo", this);
@@ -285,6 +298,22 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             Log.d("NO Permissions", "Involving getting last known provider");
         }
 
+    }
+
+    public Location getMyLocation()
+    {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        String provider = locationManager.getBestProvider(criteria, true);
+        try {
+            Location myLocation = locationManager.getLastKnownLocation(provider);
+            return myLocation;
+            //lastKnownLocation = latLng;
+        } catch (SecurityException se) {
+            Log.d("NO Permissions", "Involving getting last known provider");
+        }
+        return null;
+            //lastKnownLocation = null;
     }
 
     public void function (ArrayList<Place> placeList)
@@ -360,7 +389,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 }
                 else if(place.getTypes()[l].equals("museum"))
                 {
-                    clue = "You definetly thought these were kind of boring on school field trips";
+                    clue = "You definitely thought these were kind of boring on school field trips";
                     break;
                 }
                 else if(place.getTypes()[l].equals("library"))
@@ -375,7 +404,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 }
                 else if(place.getTypes()[l].equals("art_gallery"))
                 {
-                    clue = "You come here to look art";
+                    clue = "You come here to look at art";
                     break;
                 }
                 else if(place.getTypes()[l].equals("bakery"))
@@ -463,10 +492,10 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             double longitude = myLocation.getLongitude();
             LatLng latLng = new LatLng(latitude, longitude);
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-            lastKnownLocation = latLng;
+            //lastKnownLocation = latLng;
         } catch (SecurityException se) {
             Log.d("NO Permissions", "Involving getting last known provider");
-            lastKnownLocation = null;
+            //lastKnownLocation = null;
         }
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
@@ -493,25 +522,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 return;
             }
 
-            // other 'case' lines to check for other
-            // permissions this app might request
         }
 
     }
-
-    /*
-    public void updateDistance(Location startLocation)
-    {
-        GPSTracker mGPS = new GPSTracker(this);
-        if(mGPS.canGetLocation ){
-            Location current = mGPS.getLocation();
-            double dist = current.distanceTo(startLocation);
-            TextView t = (TextView)findViewById(R.id.text_view);
-            String setText = "distance: " + dist;
-            t.setText(setText);
-        }
-    }
-    */
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -551,30 +564,17 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        System.out.println("In on connected");
         mListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
                 double latitude = location.getLatitude();
                 double longitude = location.getLongitude();
                 LatLng changedLocation = new LatLng(latitude, longitude);
-                distFrom(changedLocation.latitude, changedLocation.latitude, lastKnownLocation.latitude, lastKnownLocation.longitude);
-                lastKnownLocation = changedLocation;
             }
         };
     }
 
-    public void distFrom(double lat1, double lng1, double lat2, double lng2) {
-        double earthRadius = 6371000; //meters
-        double dLat = Math.toRadians(lat2-lat1);
-        double dLng = Math.toRadians(lng2-lng1);
-        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                        Math.sin(dLng/2) * Math.sin(dLng/2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        float dist = (float) (earthRadius * c);
-
-        totalDistance += dist;
-    }
 
     @Override
     public void onConnectionSuspended(int i) {
