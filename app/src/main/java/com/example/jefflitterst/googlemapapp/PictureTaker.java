@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class PictureTaker extends AppCompatActivity{
+    /* TAG allows for easier debugging */
     private static final String TAG = "PicTaker: ";
     private static int TAKE_PIC = 1;
     private Uri imageUri;
@@ -48,6 +49,10 @@ public class PictureTaker extends AppCompatActivity{
     //private Button configure;
     private Mat photoToDetect;// = new Mat();
 
+    /*
+     * Various lists, being the images, image descriptors, image key points, image bitmaps,
+     * and the sorted key points lengths
+    */
     private ArrayList<Mat> imageList = new ArrayList<Mat>();
     private ArrayList<Mat> descList = new ArrayList<Mat>();
     private ArrayList<MatOfKeyPoint> kpList = new ArrayList<MatOfKeyPoint>();
@@ -56,14 +61,7 @@ public class PictureTaker extends AppCompatActivity{
     private int count = 0;
     private int listItem = 0;
 
-
-
-    /*
-    public PictureTaker() {
-        onCreate(new Bundle());
-    }
-    */
-
+    /* Confirms that OpenCV has successfully loaded */
     static {
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "OpenCV not loaded");
@@ -72,6 +70,7 @@ public class PictureTaker extends AppCompatActivity{
         }
     }
 
+    /* Creation of the PictureTaker activity */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,8 +83,6 @@ public class PictureTaker extends AppCompatActivity{
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         Button cameraButton = (Button)findViewById(R.id.button_camera2);
         cameraButton.setOnClickListener(cameraListener);
-//        configure = (Button)findViewById(R.id.button_configure);
-//        configure.setOnClickListener(configListener);
     }
 
     public OnClickListener cameraListener = new OnClickListener() {
@@ -94,6 +91,7 @@ public class PictureTaker extends AppCompatActivity{
         }
     };
 
+    /* This method allows us to access the phone's camera, and take and store an image */
     private void takePhoto(View v) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         //Intent intent = new Intent("android.action.media.IMAGE_CAPTURE");
@@ -103,6 +101,9 @@ public class PictureTaker extends AppCompatActivity{
         startActivityForResult(intent, TAKE_PIC);
     }
 
+    /* After the photo is taken, the image is brought to this method, where it is
+     * converted to a bitmap. It then has its key points extracted for comparison
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
@@ -122,12 +123,11 @@ public class PictureTaker extends AppCompatActivity{
 
                 Utils.bitmapToMat(bitmap, photo);
 
+                /* Our key point detector, descriptor extractor, and descriptor matcher */
                 FeatureDetector detector = FeatureDetector.create(FeatureDetector.ORB);
                 DescriptorExtractor descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
                 DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
 
-                //first image
-//                Mat img1 = Highgui.imread(selectedImage.toString(), 0);
                 Mat img1 = new Mat();
                 Imgproc.cvtColor(photo, img1, Imgproc.COLOR_RGB2GRAY);
                 Mat descriptors1 = new Mat();
@@ -135,28 +135,26 @@ public class PictureTaker extends AppCompatActivity{
                 detector.detect(img1, keypoints1);
                 descriptor.compute(img1, keypoints1, descriptors1);
 
-                //ClueImage pic1 = new ClueImage(img1, keypoints1);
-
-//                Imgproc.cvtColor(img1, photo, Imgproc.COLOR_GRAY2RGB);
-
                 Mat featuredImg = new Mat();
-                Scalar red = new Scalar(255,0,0);
-                Scalar green = new Scalar(0,255,0);//this will be color of keypoints
-                //featuredImg will be the output of first image
-                Features2d.drawKeypoints(img1, keypoints1, featuredImg , green, 0);
 
-//                imageList.add(count, img1);
-//                kpList.add(count, keypoints1);
-//                descList.add(count, descriptors1);
-//                count++;
+                // Various key point color options (red is most visible)
+                Scalar red = new Scalar(255,0,0);
+                Scalar green = new Scalar(0,255,0);
+                Scalar blue = new Scalar(0,0,255);
+
+                //featuredImg will be the output of first image
+                Features2d.drawKeypoints(img1, keypoints1, featuredImg , red, 0);
 
                 int matchmaker;
                 matchmaker = comparePhotos(img1, keypoints1, descriptors1);
 
                 Utils.matToBitmap(featuredImg, bitmap);
+
+                // Show image with key points on PictureTaker activity screen
                 imageView.setImageBitmap(bitmap);
 
-                if(matchmaker <= 75) {
+                // Confirms a match
+                if(matchmaker <= 45) {
                     Intent data = new Intent();
                     data.setData(Uri.parse(""+listItem));
                     setResult(RESULT_OK, data);
@@ -166,8 +164,6 @@ public class PictureTaker extends AppCompatActivity{
                 else{
                     Toast.makeText(PictureTaker.this, "No match :(\nPlease try again", Toast.LENGTH_LONG).show();
                 }
-//                }
-                //Toast.makeText(PictureTaker.this, selectedImage.toString(), Toast.LENGTH_LONG).show();
 
             } catch(Exception e) {
                 Log.e(TAG, e.toString());
@@ -177,6 +173,7 @@ public class PictureTaker extends AppCompatActivity{
     }
 
 
+    /* This is where the user's image is compared to the stored clue location photos. */
     private int comparePhotos(Mat image, MatOfKeyPoint keypoints, Mat descriptors){
         int minavg = 1000;
         for(listItem = 0; listItem < count; listItem++) {
@@ -186,38 +183,42 @@ public class PictureTaker extends AppCompatActivity{
             MatOfDMatch matches = new MatOfDMatch();
             matcher.match(descList.get(listItem), descriptors, matches);
 
+            // Each match length is stored in sortedLengths
             List<DMatch> matcheslist = matches.toList();
             for (int i = 0; i < 500; i++) {
                 sortedLengths.add(matcheslist.get(i).distance);
             }
 
+            // These lengths are sorted in terms of length in increasing order
             Collections.sort(sortedLengths);
             int average = 0;
+
+            // Only the shortest 100 distances are used to compute the overall average distance.
             for (int i = 0; i < 100; i++) {
                 average += sortedLengths.get(i);
             }
+
+            // Distances are averaged out
             average = average / 100;
 
             if(average < minavg){
                 minavg = average;
             }
 
-            if(minavg <= 75){
+            // Confirms a match and removes photos, key points, and descriptors from their respective lists
+            if(minavg <= 45){
                 removePhotos(listItem);
-                //MapsActivity.removePhoto(listItem);
-                //MapsActivity.removeMarker(listItem);
                 imageList.remove(listItem);
                 kpList.remove(listItem);
                 descList.remove(listItem);
                 count--;
 
+                // Confirms that game is over
                 if(photoList.isEmpty()){
                     Intent data = new Intent();
                     data.setData(Uri.parse(""+100));
                     setResult(RESULT_OK, data);
                     finish();
-                    //Done with scavenger hunt!
-                    //Toast.makeText(PictureTaker.this, "You've completed the scavenger hunt!!!", Toast.LENGTH_LONG).show();
                 }
                 return minavg;
             }
@@ -225,11 +226,6 @@ public class PictureTaker extends AppCompatActivity{
             sortedLengths.clear();
         }
         return minavg;
-//        MatOfByte drawnMatches = new MatOfByte();
-//        Features2d.drawMatches(imageList.get(count-2), kpList.get(count-2), imageList.get(count-1), kpList.get(count-1),matches,
-//                            featuredImg, green, red,  drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);
-//        Utils.matToBitmap(featuredImg, bitmap);
-//        Toast.makeText(PictureTaker.this, "Here are the matches!", Toast.LENGTH_LONG).show();
     }
 
     public void removePhotos(int index){
@@ -237,6 +233,8 @@ public class PictureTaker extends AppCompatActivity{
         return;
     }
 
+    // Extracts key points from each clue location photo. Key points, descriptors,
+    // and images are added to their respective lists
     private void detectKeyPoints() {
         FeatureDetector detector = FeatureDetector.create(FeatureDetector.ORB);
         DescriptorExtractor descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
@@ -252,16 +250,6 @@ public class PictureTaker extends AppCompatActivity{
             detector.detect(image, keypoints1);
             descriptor.compute(image, keypoints1, descriptors1);
 
-            //ClueImage pic1 = new ClueImage(img1, keypoints1);
-
-//                Imgproc.cvtColor(img1, photo, Imgproc.COLOR_GRAY2RGB);
-
-            //Mat featuredImg = new Mat();
-            //Scalar red = new Scalar(255,0,0);
-            //Scalar green = new Scalar(0,255,0);//this will be color of keypoints
-            //featuredImg will be the output of first image
-            //Features2d.drawKeypoints(image, keypoints1, featuredImg , green, 0);
-
             imageList.add(count, image);
             kpList.add(count, keypoints1);
             descList.add(count, descriptors1);
@@ -269,37 +257,4 @@ public class PictureTaker extends AppCompatActivity{
         }
         return;
     }
-
-    /*
-    @TargetApi(21)
-    private void openCamera() {
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        mCameraManager.openCamera("0", new StateListener() {
-            @Override
-            public void onOpened(CameraDevice cameraDevice) {
-                mCameraDevice = cameraDevice;
-            }
-        }, null);
-
-    }
-
-
-    private void enableMyLocation() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission to access the location is missing.
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.CAMERA}, PackageManager.GET_PERMISSIONS);
-        }
-    }
-    */
 }
